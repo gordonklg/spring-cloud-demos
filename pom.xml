@@ -43,5 +43,7 @@
         <module>ServiceCharlie</module>
         <module>ZuulGateway</module>
         <module>Admin</module>
+        <module>BootServiceA</module>
+        <module>BootServiceB</module>
     </modules>
 </project>
