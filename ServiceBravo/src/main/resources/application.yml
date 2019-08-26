@@ -1,0 +1,72 @@
+server:
+  port: 8181
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+spring:
+  application:
+    name: bravo
+  cloud:
+    loadbalancer:
+#可关闭ribbon的自动retry（ribbon只要类路径有spring-retry jar就自动retry）
+      retry:
+        enabled: true
+
+#logging:
+#  level:
+#    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+    health:
+      show-details: always
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: THREAD
+          thread:
+            timeoutInMilliseconds: 1000
+            interruptOnTimeout : true
+        timeout:
+          enabled: true
+      circuitBreaker:
+#当在配置时间窗口内达到此数量的失败后，进行短路，默认20
+        requestVolumeThreshold: 10
+#短路多久以后开始尝试是否恢复
+        sleepWindowInMilliseconds: 5000
+#出错百分比阈值，当达到此阈值后，开始短路。默认50%
+        errorThresholdPercentage: 50
+  threadpool:
+    default:
+      coreSize: 10
+      maxQueueSize: 100
+      queueSizeRejectionThreshold: 100
+
+## Ribbon configs
+alpha:
+  ribbon:
+#    NFLoadBalancerClassName: gordon.scdemo.bravo.MyLoadBalancer
+#ribbon连接超时
+    ConnectTimeout: 250
+#ribbon读超时
+    ReadTimeout: 1000
+#最多重试多少台服务器，首台不包括在内，数量不够（例如只有一台）会重复使用老服务器
+    MaxAutoRetriesNextServer: 1
+#每台服务器最多重试次数，但是首次调用不包括在内
+    MaxAutoRetries: 0
+#不配置的时候，仅仅当请求服务实例报错的时候重试，配置了的时候，当请求服务实例出现这里指定的状态，也会重试
+    retryableStatusCodes: 500,503
+#是否对所有请求都进行重试
+    OkToRetryOnAllOperations: true
+
+#ribbon:
+#  NFLoadBalancerClassName: gordon.scdemo.bravo.GlobalLoadBalancer
