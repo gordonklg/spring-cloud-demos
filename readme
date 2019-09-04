@@ -1,0 +1,37 @@
+hosts:
+127.0.0.1    eureka.study.com  alpha.study.com  bravo.study.com  zuul.study.com
+
+-------------------------------------------
+
+http://alpha.study.com:8111/a
+http://bravo.study.com:8121/b
+http://bravo.study.com:8121/b/all
+
+zuul:
+  prefix: /api
+  stripPrefix: true
+  host:
+    maxTotalConnections: 200
+    maxPerRouteConnections: 20
+  ignoredServices: '*'
+  routes:
+    alpha:
+      path: /a/**
+      serviceId: alpha
+      stripPrefix: false ##默认值为true
+    bravo:
+      path: /v1/b/**
+      serviceId: bravo
+
+http://zuul.study.com:8101/api/a
+http://zuul.study.com:8101/api/v1/b/b
+http://zuul.study.com:8101/api/v1/b/b/all
+
+参考源码 PreDecorationFilter -> RouteLocator(DiscoveryClientRouteLocator -> SimpleRouteLocator) -> Route
+核心是 SimpleRouteLocator.getSimpleMatchingRoute 方法，根据 request url 从 ZuulRoute 列表中找到匹配的 ZuulRoute，返回一个新建的 Route 实例。
+根据 ZuulRoute 创建 Route 时，会按照两个层级的 stripPrefix 值分别剥去相关 prefix（内层的剥去第一个 * 号前所有的字符），剩余部分为真正的 path。
+
+显然，没法配置 http://zuul.study.com:8101/api/v2/a 这种url。如果 prefix=/api/v2，会导致 bravo 错误；如果 prefix=/api，则 alpha route 不好配。
+必须修改 alpha 项目提供的服务地址才行。
+
+-------------------------------------------------

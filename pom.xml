@@ -45,5 +45,6 @@
         <module>Admin</module>
         <module>BootServiceA</module>
         <module>BootServiceB</module>
+        <module>Pelelope</module>
     </modules>
 </project>

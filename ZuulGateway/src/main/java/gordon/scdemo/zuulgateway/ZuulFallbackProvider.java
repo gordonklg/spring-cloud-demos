@@ -1,4 +1,4 @@
-package gordon.scdemo.zuul;
+package gordon.scdemo.zuulgateway;
 
 import com.netflix.hystrix.exception.HystrixTimeoutException;
 import org.springframework.cloud.netflix.zuul.filters.route.FallbackProvider;

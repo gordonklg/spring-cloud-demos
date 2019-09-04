@@ -1,11 +1,10 @@
 server:
-  port: 8081
-#  maxHttpHeaderSize: 1000
+  port: 8111
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka.study.com:8761/eureka/
 
 ## 同时用于 service id （除非用 eureka.instance.appname 特别指定）
 spring:

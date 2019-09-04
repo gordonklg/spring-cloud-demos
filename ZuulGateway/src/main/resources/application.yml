@@ -1,15 +1,19 @@
 server:
-  port: 8000
+  port: 8101
+
+spring:
+  application:
+    name: zuul-gw
+  datasource:
+    url: jdbc:h2:~/apig;AUTO_SERVER=TRUE
+    username: apig
+    password: apig
 
 eureka:
   client:
     registerWithEureka: false
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-
-spring:
-  application:
-    name: zuul-gw
+      defaultZone: http://eureka.study.com:8761/eureka/
 
 #logging:
 #  level:
@@ -36,9 +40,8 @@ zuul:
       serviceId: alpha
       stripPrefix: false
     bravo:
-      path: /b/**
+      path: /v1/b/**
       serviceId: bravo
-      stripPrefix: false
 
 ribbon:
   ReadTimeout: 8000
