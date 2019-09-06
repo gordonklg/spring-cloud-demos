@@ -1,4 +1,4 @@
-package gordon.scdemo.zuulgateway.utils;
+package gordon.scdemo.zuulgateway.apig.utils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;

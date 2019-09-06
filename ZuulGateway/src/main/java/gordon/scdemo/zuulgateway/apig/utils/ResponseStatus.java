@@ -1,12 +1,8 @@
-package gordon.scdemo.zuulgateway.utils;
+package gordon.scdemo.zuulgateway.apig.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-/**
- * @author jli2
- * @date 3/6/2019 1:11 PM
- **/
 @Data
 @AllArgsConstructor
 public class ResponseStatus {

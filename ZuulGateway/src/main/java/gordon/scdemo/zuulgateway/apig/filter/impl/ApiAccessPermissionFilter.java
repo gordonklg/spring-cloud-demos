@@ -1,14 +1,12 @@
-package gordon.scdemo.zuulgateway.filter.impl;
+package gordon.scdemo.zuulgateway.apig.filter.impl;
 
-import gordon.scdemo.zuulgateway.exception.GatewayException;
-import gordon.scdemo.zuulgateway.filter.CoreFilter;
-import gordon.scdemo.zuulgateway.filter.CoreFilterContext;
-import gordon.scdemo.zuulgateway.metadata.service.MetadataService;
+import gordon.scdemo.zuulgateway.apig.exception.GatewayException;
+import gordon.scdemo.zuulgateway.apig.filter.CoreFilter;
+import gordon.scdemo.zuulgateway.apig.filter.CoreFilterContext;
+import gordon.scdemo.zuulgateway.apig.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 
 @Slf4j
@@ -20,6 +18,8 @@ public class ApiAccessPermissionFilter implements CoreFilter {
 
     @Override
     public void doFilter(final CoreFilterContext context) throws GatewayException {
+        System.out.println("3232323232323232");
+        System.out.println(context);
 //        ServiceInfo serviceInfo=context.getServiceInfo();
 //        log.info("traceId:[{}]，need permission check ? [{}]",context.getTraceId(),serviceInfo.getNeedAuto());
 //        if(NeedAuto.FALSE ==serviceInfo.getNeedAuto()){

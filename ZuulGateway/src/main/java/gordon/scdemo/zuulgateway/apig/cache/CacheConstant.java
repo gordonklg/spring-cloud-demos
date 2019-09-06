@@ -1,4 +1,4 @@
-package gordon.scdemo.zuulgateway.metadata;
+package gordon.scdemo.zuulgateway.apig.cache;
 
 public class CacheConstant {
 

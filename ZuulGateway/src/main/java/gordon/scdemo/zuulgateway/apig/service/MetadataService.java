@@ -1,15 +1,12 @@
-package gordon.scdemo.zuulgateway.metadata.service;
+package gordon.scdemo.zuulgateway.apig.service;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import gordon.scdemo.zuulgateway.metadata.CacheConstant;
-import gordon.scdemo.zuulgateway.mgt.entity.ApiService;
+import gordon.scdemo.zuulgateway.apig.cache.CacheConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.xml.ws.ServiceMode;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,7 +37,7 @@ public class MetadataService {
 //        return (Set<String>) cache.get(CacheConstant.ALL_AM_CLIENT);
 //    }
 //
-    public Map<String, ApiService> getAllServices() {
-        return (Map<String, ApiService>) cache.get(CacheConstant.ALL_SERVICES);
+    public List getAllServices() {
+        return (List) cache.get(CacheConstant.ALL_SERVICES);
     }
 }

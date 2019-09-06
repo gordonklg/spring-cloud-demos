@@ -3,3 +3,45 @@ https://cloud.spring.io/spring-cloud-static/spring-cloud-netflix/2.1.2.RELEASE/s
 管理端点：
 /actuator/routes
 /actuator/filters
+
+-------------------------zuul 路由配置实例---------------
+
+http://alpha.study.com:8111/a
+http://bravo.study.com:8121/b
+http://bravo.study.com:8121/b/all
+
+zuul:
+  prefix: /api
+  stripPrefix: true
+  host:
+    maxTotalConnections: 200
+    maxPerRouteConnections: 20
+  ignoredServices: '*'
+  routes:
+    alpha:
+      path: /a/**
+      serviceId: alpha
+      stripPrefix: false ##默认值为true
+    bravo:
+      path: /v1/b/**
+      serviceId: bravo
+
+http://zuul.study.com:8101/api/a
+http://zuul.study.com:8101/api/v1/b/b
+http://zuul.study.com:8101/api/v1/b/b/all
+
+参考源码 PreDecorationFilter -> RouteLocator(DiscoveryClientRouteLocator -> SimpleRouteLocator) -> Route
+核心是 SimpleRouteLocator.getSimpleMatchingRoute 方法，根据 request url 从 ZuulRoute 列表中找到匹配的 ZuulRoute，返回一个新建的 Route 实例。
+根据 ZuulRoute 创建 Route 时，会按照两个层级的 stripPrefix 值分别剥去相关 prefix（内层的剥去第一个 * 号前所有的字符），剩余部分为真正的 path。
+
+显然，没法配置 http://zuul.study.com:8101/api/v2/a 这种url。如果 prefix=/api/v2，会导致 bravo 错误；如果 prefix=/api，则 alpha route 不好配。
+必须修改 alpha 项目提供的服务地址才行（例如 http://alpha.study.com:8111/v2/a）。
+
+
+--------------------API 网关路由方案 2019-09-06-----------------------
+ID  NAME    SYSTEM  REQ_URL                          REQ_METHOD  BACKEND_SYSTEM_TYPE BACKEND_URL                   BACKEND_METHOD  SERVICE_ID  TIMEOUT
+1   alpha a alpha   http://zuul.study.com:8101/api/a GET         1                   http://alpha.study.com:8111/a GET             alpha       10000
+
+老网关取巧将 zuul.servlet-path=/，这样，所有请求都进了 ZuulServlet 而没走 DispatcherServlet，导致 actuator 无法使用。
+尝试采用默认的 zuul.servlet-path=/zuul，通过 ZuulHandlerMapping 将数据库中所有网关请求URL中path的第一段（如上例的 /api/**）作为 mapping 路径，指定
+它们都由 ZuulController（ZuulServlet） 处理。构造全部 mapping 路径的逻辑由 GatewayRouteLocator 的 getRoutes 方法实现。

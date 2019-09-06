@@ -1,6 +1,6 @@
-package gordon.scdemo.zuulgateway.filter;
+package gordon.scdemo.zuulgateway.apig.filter;
 
-import gordon.scdemo.zuulgateway.filter.model.ServiceInfo;
+import gordon.scdemo.zuulgateway.apig.model.ServiceInfo;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

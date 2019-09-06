@@ -1,4 +1,4 @@
-package gordon.scdemo.zuulgateway.filter.model;
+package gordon.scdemo.zuulgateway.apig.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -1,8 +1,5 @@
-package gordon.scdemo.zuulgateway.exception;
+package gordon.scdemo.zuulgateway.apig.exception;
 
-
-import com.netflix.zuul.exception.ZuulException;
-import org.springframework.http.HttpStatus;
 
 public final class GatewayException extends RuntimeException {
 

@@ -1,5 +1,6 @@
 server:
   port: 8101
+#  servlet-path: /zuul
 
 spring:
   application:
@@ -28,20 +29,11 @@ management:
       show-details: always
 
 zuul:
-  prefix: /api
-  stripPrefix: true
-  host:
-    maxTotalConnections: 200
-    maxPerRouteConnections: 20
   ignoredServices: '*'
-  routes:
-    alpha:
-      path: /a/**
-      serviceId: alpha
-      stripPrefix: false
-    bravo:
-      path: /v1/b/**
-      serviceId: bravo
+#  routes:
+#    default:
+#      path: /**
+#  servlet-path: /
 
 ribbon:
   ReadTimeout: 8000
