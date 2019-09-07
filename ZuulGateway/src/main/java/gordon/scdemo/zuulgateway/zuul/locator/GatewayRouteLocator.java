@@ -51,32 +51,32 @@ public class GatewayRouteLocator extends DiscoveryClientRouteLocator {
 //        return routesMap;
 //    }
 
-    @Override
-    public List<Route> getRoutes() {
-        List<Route> values = new ArrayList<>();
-        List services = metadataService.getAllServices();
-        Map<String, ServiceInfo> simpleUrlServices = (Map) services.get(0);
-        Set<String> set = new HashSet<>();
-        for (ServiceInfo serviceInfo : simpleUrlServices.values()) {
-            UriComponents uri = UriComponentsBuilder.fromUriString(serviceInfo.getReqUrl()).build();
-            String path = uri.getPath();
-            if(!path.contains("/")) {
-                throw new RuntimeException("Wrong Path of service id " + serviceInfo.getServiceId());
-            }
-            int secondSlash = path.indexOf("/", 1);
-            if(secondSlash > 0 ) {
-                path = path.substring(0, secondSlash);
-            }
-
-            path += "/**";
-
-            if(!set.contains(path)) {
-                set.add(path);
-                values.add(new Route(String.valueOf(serviceInfo.getId()), path, StringUtils.EMPTY, StringUtils.EMPTY, false, null));
-            }
-        }
-        return values;
-    }
+//    @Override
+//    public List<Route> getRoutes() {
+//        List<Route> values = new ArrayList<>();
+//        List services = metadataService.getAllServices();
+//        Map<String, ServiceInfo> simpleUrlServices = (Map) services.get(0);
+//        Set<String> set = new HashSet<>();
+//        for (ServiceInfo serviceInfo : simpleUrlServices.values()) {
+//            UriComponents uri = UriComponentsBuilder.fromUriString(serviceInfo.getReqUrl()).build();
+//            String path = uri.getPath();
+//            if(!path.contains("/")) {
+//                throw new RuntimeException("Wrong Path of service id " + serviceInfo.getServiceId());
+//            }
+//            int secondSlash = path.indexOf("/", 1);
+//            if(secondSlash > 0 ) {
+//                path = path.substring(0, secondSlash);
+//            }
+//
+//            path += "/**";
+//
+//            if(!set.contains(path)) {
+//                set.add(path);
+//                values.add(new Route(String.valueOf(serviceInfo.getId()), path, StringUtils.EMPTY, StringUtils.EMPTY, false, null));
+//            }
+//        }
+//        return values;
+//    }
 
     @Override
     public Route getMatchingRoute(String path) {

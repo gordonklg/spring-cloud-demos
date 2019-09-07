@@ -1,6 +1,5 @@
 server:
   port: 8101
-#  servlet-path: /zuul
 
 spring:
   application:
@@ -33,7 +32,7 @@ zuul:
 #  routes:
 #    default:
 #      path: /**
-#  servlet-path: /
+  servlet-path: /
 
 ribbon:
   ReadTimeout: 8000

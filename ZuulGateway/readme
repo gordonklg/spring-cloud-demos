@@ -45,3 +45,79 @@ ID  NAME    SYSTEM  REQ_URL                          REQ_METHOD  BACKEND_SYSTEM_
 老网关取巧将 zuul.servlet-path=/，这样，所有请求都进了 ZuulServlet 而没走 DispatcherServlet，导致 actuator 无法使用。
 尝试采用默认的 zuul.servlet-path=/zuul，通过 ZuulHandlerMapping 将数据库中所有网关请求URL中path的第一段（如上例的 /api/**）作为 mapping 路径，指定
 它们都由 ZuulController（ZuulServlet） 处理。构造全部 mapping 路径的逻辑由 GatewayRouteLocator 的 getRoutes 方法实现。
+
+--------------------API 网关路由方案 打脸 2019-09-07-----------------------
+老网关思路是可行的，是Spring Boot升级到2.0后zuul.servlet-path配置废弃，必须通过编程方式设置DispatcherServlet的url mapping。而我已经忘了
+url mapping的路径模式必须是 /* 结尾的，所以不生效…… 乌龙乌龙啦
+
+https://docs.spring.io/spring/docs/5.1.6.RELEASE/spring-framework-reference/web.html#mvc-servlet
+《servlet-3_1-final.pdf》 chapter 12：
+- 优先精确路径匹配（所有非特殊匹配都是精确匹配，注意空字符串"" 是一种特殊的精确匹配，指向应用的上下文的根 app context root）
+- 接着尝试路径匹配，按照最长匹配路径优先命中原则（路径匹配以 / 开始以 /* 结束）
+- 接着尝试扩展名匹配（扩展名匹配以 *. 开始）
+- 使用默认匹配（只包含 /）
+
+让ZuulServlet 匹配 /，让 DispatcherServlet 匹配 /apig/*。可以看到两者区别：
+老网关思路下的servlets：
+    "servlets": [{
+        "mappings": ["/"],
+        "name": "default",
+        "className": "org.apache.catalina.servlets.DefaultServlet"
+    }, {
+        "mappings": ["/actuator/hystrix.stream/*"],
+        "name": "hystrix.stream-actuator-endpoint",
+        "className": "com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet"
+    }, {
+        "mappings": ["/apig/*", "/favicon.ico"],
+        "name": "dispatcherServlet",
+        "className": "org.springframework.web.servlet.DispatcherServlet"
+    }, {
+        "mappings": ["/*"],
+        "name": "zuulServlet",
+        "className": "com.netflix.zuul.http.ZuulServlet"
+    }]
+
+昨天的思路：
+    "servlets": [{
+        "mappings": [],
+        "name": "default",
+        "className": "org.apache.catalina.servlets.DefaultServlet"
+    }, {
+        "mappings": ["/actuator/hystrix.stream/*"],
+        "name": "hystrix.stream-actuator-endpoint",
+        "className": "com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet"
+    }, {
+        "mappings": ["/"],
+        "name": "dispatcherServlet",
+        "className": "org.springframework.web.servlet.DispatcherServlet"
+    }, {
+        "mappings": ["/zuul/*"],
+        "name": "zuulServlet",
+        "className": "com.netflix.zuul.http.ZuulServlet"
+    }]
+
+重新改为老网关思路。
+actuator 访问地址变为 http://zuul.study.com:8101/apig/actuator
+注意到HystrixMetricsStreamServlet 的 mappings 是 "/actuator/hystrix.stream/*"，这以后可能是个坑。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
