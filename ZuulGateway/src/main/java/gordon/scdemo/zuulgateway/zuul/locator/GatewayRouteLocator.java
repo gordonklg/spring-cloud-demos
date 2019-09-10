@@ -82,20 +82,23 @@ public class GatewayRouteLocator extends DiscoveryClientRouteLocator {
     public Route getMatchingRoute(String path) {
         RequestContext ctx = RequestContext.getCurrentContext();
         final ServiceInfo serviceInfo = (ServiceInfo) ctx.get(GatewayCommonPreFilter.ROUTE_API_INFO);
-        String systemType = "1";
-        if (systemType.equals("1")) {
+        if (serviceInfo.getBackendSystemType().equals("1")) {
             log.info("forward to serviceid:[{}] and path:[{}]", serviceInfo.getServiceId(), path);
             final String serviceId = StringUtils.lowerCase(serviceInfo.getServiceId());
-            UriComponents uri = UriComponentsBuilder.fromUriString(serviceInfo.getBackendUrl()).build();
-            Route route = new Route(String.valueOf(serviceInfo.getId()), uri.getPath(), serviceId, StringUtils.EMPTY, false, null);
+            String backendUrl = serviceInfo.getBackendUrl();
+            if (StringUtils.isEmpty(backendUrl)) {
+                UriComponents uri = UriComponentsBuilder.fromUriString(serviceInfo.getReqUrl()).build();
+                backendUrl = uri.getPath();
+            } else {
+                UriComponents uri = UriComponentsBuilder.fromUriString(backendUrl).build();
+                backendUrl = uri.getPath();
+            }
+            Route route = new Route(String.valueOf(serviceInfo.getId()), backendUrl, serviceId, StringUtils.EMPTY, false, null);
             log.info(route.toString());
             return route;
         } else {
             log.info("forward to backendurl:[{}] and path:[{}]", serviceInfo.getBackendUrl(), path);
-            return null;
-//            return new Route(serviceInfo.getId(), path, serviceInfo.getBackendUrl(), StringUtils.EMPTY,
-//                    false,
-//                    null);
+            return new Route(String.valueOf(serviceInfo.getId()), StringUtils.EMPTY, serviceInfo.getBackendUrl(), StringUtils.EMPTY, false, null);
         }
     }
 

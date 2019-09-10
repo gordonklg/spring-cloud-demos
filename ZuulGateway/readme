@@ -102,7 +102,6 @@ actuator 访问地址变为 http://zuul.study.com:8101/apig/actuator
 注意到HystrixMetricsStreamServlet 的 mappings 是 "/actuator/hystrix.stream/*"，这以后可能是个坑。
 
 
-
 --------------------API 网关过滤器热加载 2019-09-09-----------------------
 热加载原型。用自定义类加载器加载 resources/filters 目录下的所有 class，并找出所有 CoreFilter 实现类。
 Watcher线程每隔十秒重新加载所有 class。
@@ -110,15 +109,13 @@ Watcher线程每隔十秒重新加载所有 class。
 用 IDEA run 运行时，必须重命名 gordon.scdemo.zuulgateway.apig.filter.impl 包，否则是由 AppClassLoader 加载，无法热加载。
 
 
+--------------------路由增强 2019-09-10-----------------------
+ID  REQ_URL                                 REQ_METHOD  BACKEND_SYSTEM_TYPE BACKEND_URL                   BACKEND_METHOD  SERVICE_ID
+1   http://zuul.study.com:8101/api/a        GET         1                   /a                            GET             alpha
+2   http://zuul.study.com:8101/a            GET         1                                                 GET             alpha
+3   http://zuul.study.com:8101/api/direct/a GET         1                   http://alpha.study.com:8111/a GET
 
-
-
-
-
-
-
-
-
+以上都是访问 http://alpha.study.com:8111/a (http://alpha/a)
 
 
 

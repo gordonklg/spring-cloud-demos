@@ -5,7 +5,7 @@ public class FilterUpdateWatcher {
     public static void startWatch(FilterLoader filterLoader) {
         new Thread(() -> {
             while(true) {
-                if (true) {
+                if (false) {
                     filterLoader.updateFilters();
                 }
                 try {
