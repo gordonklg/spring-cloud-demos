@@ -109,17 +109,33 @@ Watcher线程每隔十秒重新加载所有 class。
 用 IDEA run 运行时，必须重命名 gordon.scdemo.zuulgateway.apig.filter.impl 包，否则是由 AppClassLoader 加载，无法热加载。
 
 
---------------------路由增强 2019-09-10-----------------------
-ID  REQ_URL                                 REQ_METHOD  BACKEND_SYSTEM_TYPE BACKEND_URL                   BACKEND_METHOD  SERVICE_ID
-1   http://zuul.study.com:8101/api/a        GET         1                   /a                            GET             alpha
-2   http://zuul.study.com:8101/a            GET         1                                                 GET             alpha
-3   http://zuul.study.com:8101/api/direct/a GET         1                   http://alpha.study.com:8111/a GET
+--------------------路由修正 2019-09-10-----------------------
+ID  REQ_URL                                  REQ_METHOD  BACKEND_SYSTEM_TYPE  BACKEND_URL                   BACKEND_METHOD  SERVICE_ID
+1   http://zuul.study.com:8101/api/a         GET         1                    /a                            GET             alpha
+2   http://zuul.study.com:8101/a             GET         1                                                  GET             alpha
+3   http://zuul.study.com:8101/api/direct/a  GET         2                    http://alpha.study.com:8111/a GET
 
 以上都是访问 http://alpha.study.com:8111/a (http://alpha/a)
 
+在自定义的 GatewayCommonPreFilter 中通过 request url 匹配对应的 service （ServiceInfo）。路由的数据准备还是交给 Zuul 自带的 PreDecorationFilter。
+PreDecorationFilter 会通过 RouteLocator 获取 matching route，我们通过自定义的 GatewayRouteLocator 重写的 getMatchingRoute 方法生成合适的 Route 实例，供 PreDecorationFilter 使用。
+
+PreDecorationFilter 主要按照 Route 的 location 属性的格式，决定路由的类型（Hystrix、Simple、forward），通过设置不同的 RequestContext 变量，执行不同的 route 阶段的过滤器。
 
 
+--------------------支持 PathVariable 2019-09-16-----------------------
+网关功能参考阿里云 API 网关，用 /user/[uid] 格式。
+匹配实现参考 SpringMVC。RequestMappingHandlerMapping(AbstractHandlerMethodMapping) 的 lookupHandlerMethod 方法寻找匹配的 handler method。
+mappingRegistry 中储存了根据注解解析出的 MappingRegistration 列表，MappingRegistration 包含封装了匹配逻辑的 RequestMappingInfo 和对应的 handler method。
 
+匹配算法：先在所有的 MappingRegistration 中根据 direct url （例如 /aa/user/{uid}/car/{vin}/info）找能够直接匹配 request url path 的 mappings，如果没有，再通过
+RequestMappingInfo 的 getMatchingCondition 方法找能够匹配的 mappings。
+RequestMappingInfo 通过 PatternsRequestCondition 判断 request url 与当前 mapping 是否匹配，其中实际使用的匹配器是 AntPathMatcher，细节见其 doMatch 方法。
+如果多个 mappings 匹配成功，则根据 RequestMappingInfo 定义的 compareTo 方法排序，然后选第一个最匹配的，但如果有两个匹配度一致，则抛异常 Ambiguous handler methods ...
 
+最容易复用的就是 AntPathMatcher。
 
+ID  REQ_URL                                                     REQ_METHOD  BACKEND_SYSTEM_TYPE  BACKEND_URL                    BACKEND_METHOD  SERVICE_ID
+4   http://zuul.study.com:8101/aa/user/[uid]/car/[vin]/info     GET         1                                                   GET             alpha
+5   http://zuul.study.com:8101/aa/v1/user/car/[uid]/[vin]       GET         1                    /aa/user/[uid]/car/[vin]/info  GET             alpha
 

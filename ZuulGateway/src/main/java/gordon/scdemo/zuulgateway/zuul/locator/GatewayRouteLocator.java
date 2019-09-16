@@ -2,7 +2,6 @@ package gordon.scdemo.zuulgateway.zuul.locator;
 
 
 import com.netflix.zuul.context.RequestContext;
-import com.netflix.zuul.exception.ZuulException;
 import gordon.scdemo.zuulgateway.apig.model.ServiceInfo;
 import gordon.scdemo.zuulgateway.apig.service.MetadataService;
 import gordon.scdemo.zuulgateway.zuul.prefilter.GatewayCommonPreFilter;
@@ -13,20 +12,8 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.netflix.zuul.filters.Route;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties;
-import org.springframework.cloud.netflix.zuul.filters.ZuulProperties.ZuulRoute;
 import org.springframework.cloud.netflix.zuul.filters.discovery.DiscoveryClientRouteLocator;
 import org.springframework.cloud.netflix.zuul.filters.discovery.ServiceRouteMapper;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 public class GatewayRouteLocator extends DiscoveryClientRouteLocator {
@@ -80,25 +67,17 @@ public class GatewayRouteLocator extends DiscoveryClientRouteLocator {
 
     @Override
     public Route getMatchingRoute(String path) {
-        RequestContext ctx = RequestContext.getCurrentContext();
+        final RequestContext ctx = RequestContext.getCurrentContext();
         final ServiceInfo serviceInfo = (ServiceInfo) ctx.get(GatewayCommonPreFilter.ROUTE_API_INFO);
         if (serviceInfo.getBackendSystemType().equals("1")) {
             log.info("forward to serviceid:[{}] and path:[{}]", serviceInfo.getServiceId(), path);
             final String serviceId = StringUtils.lowerCase(serviceInfo.getServiceId());
-            String backendUrl = serviceInfo.getBackendUrl();
-            if (StringUtils.isEmpty(backendUrl)) {
-                UriComponents uri = UriComponentsBuilder.fromUriString(serviceInfo.getReqUrl()).build();
-                backendUrl = uri.getPath();
-            } else {
-                UriComponents uri = UriComponentsBuilder.fromUriString(backendUrl).build();
-                backendUrl = uri.getPath();
-            }
-            Route route = new Route(String.valueOf(serviceInfo.getId()), backendUrl, serviceId, StringUtils.EMPTY, false, null);
+            Route route = new Route(String.valueOf(serviceInfo.getId()), serviceInfo.getResolvedBackendUrl(), serviceId, StringUtils.EMPTY, false, null);
             log.info(route.toString());
             return route;
         } else {
-            log.info("forward to backendurl:[{}] and path:[{}]", serviceInfo.getBackendUrl(), path);
-            return new Route(String.valueOf(serviceInfo.getId()), StringUtils.EMPTY, serviceInfo.getBackendUrl(), StringUtils.EMPTY, false, null);
+            log.info("forward to backendurl:[{}] and path:[{}]", serviceInfo.getResolvedBackendUrl(), path);
+            return new Route(String.valueOf(serviceInfo.getId()), StringUtils.EMPTY, serviceInfo.getResolvedBackendUrl(), StringUtils.EMPTY, false, null);
         }
     }
 

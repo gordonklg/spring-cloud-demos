@@ -4,20 +4,20 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import gordon.scdemo.zuulgateway.apig.model.ServiceInfo;
 import gordon.scdemo.zuulgateway.apig.cache.CacheConstant;
+import gordon.scdemo.zuulgateway.apig.exception.GatewayException;
+import gordon.scdemo.zuulgateway.apig.model.ServiceInfo;
 import gordon.scdemo.zuulgateway.mgt.common.util.beancopy.BeanMapper;
 import gordon.scdemo.zuulgateway.mgt.entity.ApiService;
 import gordon.scdemo.zuulgateway.mgt.service.ServiceService;
-import gordon.scdemo.zuulgateway.zuul.RequestInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,24 @@ public class CacheConfiguration {
             List<ApiService> services = service.list();
             for (ApiService service : services) {
                 ServiceInfo serviceInfo = BeanMapper.map(service, ServiceInfo.class);
-                if (service.getReqUrl().contains("{")) {
+                // change path variable from [] to {}, in order to use AntPathMatcher.
+                if (serviceInfo.hasPathVariable()) {
+                    String newReqUrl = serviceInfo.getReqUrl().replace("[", "{");
+                    newReqUrl = newReqUrl.replace("]", "}");
+                    serviceInfo.setReqUrl(newReqUrl);
+                }
+                // set reqUrlObj
+                try {
+                    URL url = new URL(serviceInfo.getReqUrl());
+                    if (url.getPort() == -1) {
+                        url = new URL(url.getProtocol(), url.getHost(), url.getDefaultPort(), url.getFile());
+                    }
+                    serviceInfo.setReqUrlObj(url);
+                } catch (MalformedURLException e) {
+                    throw new GatewayException();
+                }
+
+                if (serviceInfo.hasPathVariable()) {
                     pathVariableUrlServices.add(serviceInfo);
                 } else {
                     simpleUrlServices.put(getApiKey(serviceInfo), serviceInfo);
@@ -92,21 +109,7 @@ public class CacheConfiguration {
     }
 
     private String getApiKey(ServiceInfo info) {
-        UriComponents uri = UriComponentsBuilder.fromUriString(info.getReqUrl()).build();
-        StringBuilder sb = new StringBuilder();
-        sb.append(StringUtils.upperCase(info.getReqMethod()))
-                .append(StringUtils.lowerCase(uri.getScheme()))
-                .append(uri.getHost())
-                .append(getPort(uri.getPort(), uri.getScheme()))
-                .append(StringUtils.stripEnd(uri.getPath(), "/"));
-        return sb.toString();
-    }
-
-    private int getPort(int port, String schema) {
-        if (port > 0) {
-            return port;
-        }
-        return RequestInfo.defaultSchemaPort.get(StringUtils.lowerCase(schema));
+        return StringUtils.upperCase(info.getReqMethod()) + " " + info.getReqUrlObj().toExternalForm();
     }
 
 }
